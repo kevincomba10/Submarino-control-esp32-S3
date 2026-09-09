@@ -1,0 +1,142 @@
+//
+// CONTROL BOMBAS SUBMARINO + AVANCE DIRECTO
+// usando módulos MOSFET LR7843
+//
+
+// =====================================
+// PINES ESP32
+// =====================================
+
+#define AI 13       // Arriba Izquierda
+#define AD 11       // Arriba Derecha
+#define BI 9        // Abajo Izquierda
+#define BD 4        // Abajo Derecha
+#define ADELANTE 12 // Pin exclusivo para avanzar (NUEVO)
+
+void setup() {
+
+  Serial.begin(115200);
+
+  pinMode(AI, OUTPUT);
+  pinMode(AD, OUTPUT);
+  pinMode(BI, OUTPUT);
+  pinMode(BD, OUTPUT);
+  pinMode(ADELANTE, OUTPUT); // Configurar pin 12 como salida
+
+  apagarTodo();
+
+  Serial.println("Sistema submarino listo");
+  Serial.println("");
+  Serial.println("Comandos:");
+  Serial.println("a  -> adelante");
+  Serial.println("d  -> derecha");
+  Serial.println("i  -> izquierda");
+  Serial.println("rd -> roll_derecha");
+  Serial.println("ri -> roll_izquierda");
+  Serial.println("stop");
+}
+
+void loop() {
+
+  if (Serial.available()) {
+
+    String cmd = Serial.readStringUntil('\n');
+
+    cmd.trim();
+
+    // apagar todo antes de nuevo movimiento
+    apagarTodo();
+
+    // =====================================
+    // IR HACIA ADELANTE
+    // Activa ÚNICAMENTE el pin 12
+    // =====================================
+    if (cmd == "a") {
+
+      Serial.println("Avanzando hacia adelante (Pin 12)");
+
+      digitalWrite(ADELANTE, HIGH); 
+    }
+
+    // =====================================
+    // GIRAR DERECHA
+    // activa bombas lado izquierdo
+    // =====================================
+    else if (cmd == "d") {
+
+      Serial.println("Girando derecha");
+
+      digitalWrite(AI, HIGH);
+      digitalWrite(BI, HIGH);
+    }
+
+    // =====================================
+    // GIRAR IZQUIERDA
+    // activa bombas lado derecho
+    // =====================================
+    else if (cmd == "i") { // <-- Corregido: Faltaba cerrar la comilla aquí ("i)
+
+      Serial.println("Girando izquierda");
+
+      digitalWrite(AD, HIGH);
+      digitalWrite(BD, HIGH);
+    }
+
+    // =====================================
+    // ROLL DERECHA
+    // diagonal:
+    // arriba derecha + abajo izquierda
+    // =====================================
+    else if (cmd == "rd") {
+
+      Serial.println("Roll derecha");
+
+      digitalWrite(AD, HIGH);
+      digitalWrite(BI, HIGH);
+    }
+
+    // =====================================
+    // ROLL IZQUIERDA
+    // diagonal:
+    // arriba izquierda + abajo derecha
+    // =====================================
+    else if (cmd == "ri") {
+
+      Serial.println("Roll izquierda");
+
+      digitalWrite(AI, HIGH);
+      digitalWrite(BD, HIGH);
+    }
+
+    // =====================================
+    // STOP
+    // =====================================
+    else if (cmd == "stop") {
+
+      Serial.println("STOP");
+
+      apagarTodo();
+    }
+
+    // =====================================
+    // COMANDO INVÁLIDO (Corregido: Se restauraron las barras de comentario '//')
+    // =====================================
+    else {
+
+      Serial.println("Comando no valido");
+    }
+  }
+}
+
+// =====================================
+// APAGAR TODO
+// =====================================
+
+void apagarTodo() {
+
+  digitalWrite(AI, LOW);
+  digitalWrite(AD, LOW);
+  digitalWrite(BI, LOW);
+  digitalWrite(BD, LOW);
+  digitalWrite(ADELANTE, LOW); // Apaga también el pin 12 al cambiar de comando o frenar
+}
